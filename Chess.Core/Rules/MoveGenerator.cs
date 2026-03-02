@@ -34,7 +34,6 @@ public class MoveGenerator
 
     private List<Move> GeneratePawnMoves(Board board, int row, int col)
     {
-        // Implement pawn move generation logic
         List<Move> moves = new List<Move>();
         Piece? piece = board.GetPieceAt(row, col);
         if (piece == null || piece.Type != PieceType.Pawn)
@@ -125,7 +124,6 @@ public class MoveGenerator
             }
         }
 
-        // Implement rook move generation logic
         return moves;
     }
 
@@ -137,8 +135,40 @@ public class MoveGenerator
 
     private List<Move> GenerateBishopMoves(Board board, int row, int col)
     {
-        // Implement bishop move generation logic
-        return new List<Move>();
+        List<Move> moves = new List<Move>();
+        Piece? piece = board.GetPieceAt(row, col);
+        if (piece == null || piece.Type != PieceType.Bishop)
+        {
+            return moves;
+        }
+
+        // Generate moves in all 4 diagonal directions (left-up, left-down, right-up, right-down)
+        (int, int)[] directions = { (-1, -1), (1, -1), (-1, 1), (1, 1) }; // (d-row, d-col), ...
+        for (int d = 0; d < 4; d++)
+        {
+            int newRow = row + directions[d].Item1;
+            int newCol = col + directions[(d + 1) % 4].Item2;
+            while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8)
+            {
+                Piece? targetPiece = board.GetPieceAt(newRow, newCol);
+                if (targetPiece == null)
+                {
+                    moves.Add(new Move(row, col, newRow, newCol));
+                }
+                else
+                {
+                    if (targetPiece.Color != piece.Color)
+                    {
+                        moves.Add(new Move(row, col, newRow, newCol));
+                    }
+                    break;
+                }
+                newRow += directions[d].Item1;
+                newCol += directions[(d + 1) % 4].Item2;
+            }
+        }
+
+        return moves;
     }
 
     private List<Move> GenerateQueenMoves(Board board, int row, int col)
