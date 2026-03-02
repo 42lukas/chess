@@ -4,8 +4,9 @@ using Avalonia.Controls.Templates;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Chess.Core;
+using Chess.Core.Gamefield;
 using Chess.Core.Pieces;
+using Chess.Core.Rules;
 
 namespace Chess;
 
@@ -177,6 +178,11 @@ public partial class MainWindow : Window
             int col = index % 8;
             if (selectPiece)
             {
+                if (board.GetPieceAt(row, col) == null)
+                {
+                    // If no piece is at the clicked square, do nothing
+                    return;
+                }
                 System.Console.WriteLine(selectPiece);
                 SelectPiece(row, col);
                 selectPiece = false;
@@ -208,30 +214,18 @@ public partial class MainWindow : Window
             selectedCol = 0;
             return;
         }
-        if (board.GetPieceAt(selectedRow, selectedCol) == null)
-        {
-            // If no piece is selected, do nothing
-            selectedRow = 0;
-            selectedCol = 0;
-            return;
-        }
-        if (board.GetPieceAt(toRow, toCol) != null && board.GetPieceAt(toRow, toCol)?.Color == board.GetPieceAt(selectedRow, selectedCol)?.Color)
-        {
-            // If the target square has a piece of the same color, do nothing
-            selectedRow = 0;
-            selectedCol = 0;
-            return;
-        }
-        if (!board.IsValidMove(selectedRow, selectedCol, toRow, toCol))
-        {
-            // If the move is not valid according to chess rules, do nothing
-            selectedRow = 0;
-            selectedCol = 0;
-            return;
-        }
 
-        board.SetPieceAt(toRow, toCol, board.GetPieceAt(selectedRow, selectedCol));
-        board.RemovePieceAt(selectedRow, selectedCol);
-        UpdateBoard();
+        Move move = new Move(selectedRow, selectedCol, toRow, toCol);
+        if (board.MovePiece(move))
+        {
+            UpdateBoard();
+        }
+        else
+        {
+            // If the move was not successful, do nothing
+            selectedRow = 0;
+            selectedCol = 0;
+            return;
+        }
     }
 }
