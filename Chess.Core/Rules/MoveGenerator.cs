@@ -184,7 +184,60 @@ public class MoveGenerator
 
     private List<Move> GenerateKingMoves(Board board, int row, int col)
     {
-        // Implement king move generation logic
-        return new List<Move>();
+        // Generates vertical/horizontal moves
+        List<Move> moves = new List<Move>();
+        Piece? piece = board.GetPieceAt(row, col);
+        if (piece == null || piece.Type != PieceType.King)
+        {
+            return moves;
+        }
+
+        int[] directions = { -1, 0, 1, 0 }; // up, right, down, left
+        for (int d = 0; d < 4; d++)
+        {
+            int newRow = row + directions[d];
+            int newCol = col + directions[(d + 1) % 4];
+            if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8)
+            {
+                Piece? targetPiece = board.GetPieceAt(newRow, newCol);
+                if (targetPiece == null)
+                {
+                    moves.Add(new Move(row, col, newRow, newCol));
+                }
+                else
+                {
+                    if (targetPiece.Color != piece.Color)
+                    {
+                        moves.Add(new Move(row, col, newRow, newCol));
+                    }
+                }
+            }
+        }
+
+
+        // Generates diagonal moves
+        (int, int)[] directionsDia = { (-1, -1), (1, -1), (-1, 1), (1, 1) }; // (d-row, d-col), ...
+        for (int d = 0; d < 4; d++)
+        {
+            int newRow = row + directionsDia[d].Item1;
+            int newCol = col + directionsDia[(d + 1) % 4].Item2;
+            if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8)
+            {
+                Piece? targetPiece = board.GetPieceAt(newRow, newCol);
+                if (targetPiece == null)
+                {
+                    moves.Add(new Move(row, col, newRow, newCol));
+                }
+                else
+                {
+                    if (targetPiece.Color != piece.Color)
+                    {
+                        moves.Add(new Move(row, col, newRow, newCol));
+                    }
+                }
+            }
+        }
+
+        return moves;
     }
 }
