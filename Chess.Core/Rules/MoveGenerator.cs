@@ -93,7 +93,7 @@ public class MoveGenerator
     {
         List<Move> moves = new List<Move>();
         Piece? piece = board.GetPieceAt(row, col);
-        if (piece == null || piece.Type != PieceType.Rook)
+        if (piece == null)
         {
             return moves;
         }
@@ -137,7 +137,7 @@ public class MoveGenerator
     {
         List<Move> moves = new List<Move>();
         Piece? piece = board.GetPieceAt(row, col);
-        if (piece == null || piece.Type != PieceType.Bishop)
+        if (piece == null)
         {
             return moves;
         }
@@ -173,8 +173,13 @@ public class MoveGenerator
 
     private List<Move> GenerateQueenMoves(Board board, int row, int col)
     {
-        // Implement queen move generation logic
-        return new List<Move>();
+        List<Move> rookMoves = GenerateRookMoves(board, row, col);
+        List<Move> bishopMoves = GenerateBishopMoves(board, row, col);
+
+        bishopMoves.AddRange(rookMoves);
+
+        List<Move> queenMoves = bishopMoves;
+        return queenMoves;
     }
 
     private List<Move> GenerateKingMoves(Board board, int row, int col)

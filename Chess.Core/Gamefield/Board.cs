@@ -75,6 +75,13 @@ public class Board
             return result;
         }
 
+        if (piece.Type == PieceType.Queen)
+        {
+            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move);
+            System.Console.WriteLine($"Valid moves for bishop: {string.Join(", ", validMoves.Select(m => $"({m.FromRow}, {m.FromCol}) -> ({m.ToRow}, {m.ToCol})"))}");
+            bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
+            return result;
+        }
 
 
         // Implement logic to determine if a move from (fromRow, fromCol) to (toRow, toCol) is valid
