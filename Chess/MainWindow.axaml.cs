@@ -103,12 +103,10 @@ public partial class MainWindow : Window
 
     public void RenderBoard()
     {
-        // Implement logic to render the chess board based on the current state of the Board class
         for (int row = 0; row < 8; row++)
         {
             for (int col = 0; col < 8; col++)
             {
-                // Get the piece at the current position and update the corresponding button's content
                 var piece = board.GetPieceAt(row, col);
                 if (piece != null)
                 {
@@ -151,7 +149,6 @@ public partial class MainWindow : Window
                         case King k when k.Color == PieceColor.Black:
                             board_btns[row * 8 + col].Content = new Image { Source = b_king_bit, Stretch = Stretch.Uniform };
                             break;
-                        // Add cases for other piece types (Rook, Knight, Bishop, Queen, King) and their colors
                         default:
                             board_btns[row * 8 + col].Content = piece.ToString();
                             break;
@@ -222,7 +219,6 @@ public partial class MainWindow : Window
 
     private void SelectPiece(int row, int col)
     {
-        // Implement logic to select a piece at the specified position
         selectedRow = row;
         selectedCol = col;
         Console.WriteLine(selectedRow);

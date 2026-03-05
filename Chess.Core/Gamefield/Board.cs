@@ -95,8 +95,6 @@ public class Board
             return result;
         }
 
-
-        // Implement logic to determine if a move from (fromRow, fromCol) to (toRow, toCol) is valid
         return true;
     }
 

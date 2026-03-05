@@ -142,7 +142,6 @@ public class MoveGenerator
         {
             int newRow = row + directions[d].Item1;
             int newCol = col + directions[d].Item2;
-            //Console.WriteLine($"possible move {d}: {newRow + 1}, {newCol + 1} (row/col)");
             if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8)
             {
                 Piece? targetPiece = board.GetPieceAt(newRow, newCol);
