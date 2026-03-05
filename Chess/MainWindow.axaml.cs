@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
@@ -15,9 +17,8 @@ public partial class MainWindow : Window
     public Button[] board_btns = new Button[64];
     private Bitmap? w_pawn_bit, b_pawn_bit, w_rook_bit, b_rook_bit, w_knight_bit, b_knight_bit, w_bishop_bit, b_bishop_bit, w_queen_bit, b_queen_bit, w_king_bit, b_king_bit;
     public Board board = new Board();
-    private bool selectPiece = true;
-    private int selectedRow = 0;
-    private int selectedCol = 0;
+    private int selectedRow = -1;
+    private int selectedCol = -1;
 
     public MainWindow()
     {
@@ -166,8 +167,26 @@ public partial class MainWindow : Window
 
     public void UpdateBoard()
     {
-        // Implement logic to update the board state and re-render the board
+        RemoveHighlightSqure();
         RenderBoard();
+    }
+
+    private void HighlighSquares(List<Move> moves)
+    {
+        RemoveHighlightSqure();
+        for (int i = 0; i < moves.Count; i++)
+        {
+            int buttonIndex = moves[i].ToRow * 8 + moves[i].ToCol;
+            board_btns[buttonIndex].Background = new SolidColorBrush(Color.Parse("#00ff00"));
+        }
+    }
+
+    private void RemoveHighlightSqure()
+    {
+        for (int i = 0; i < board_btns.Length; i++)
+        {
+            board_btns[i].Background = (i / 8 + i % 8) % 2 == 0 ? new SolidColorBrush(Color.Parse("#F0D9B5")) : new SolidColorBrush(Color.Parse("#B58863"));
+        }
     }
 
     public void ClickHandler(object? sender, RoutedEventArgs args)
@@ -176,42 +195,53 @@ public partial class MainWindow : Window
         {
             int row = index / 8;
             int col = index % 8;
-            if (selectPiece)
+            Console.WriteLine($"Button at row {row + 1}, column {col + 1} was clicked.");
+
+            Piece? pieceAtPos = board.GetPieceAt(row, col);
+            if (selectedCol == -1 && selectedRow == -1 && (pieceAtPos == null || board.CurrentTurn != pieceAtPos.Color))
             {
-                if (board.GetPieceAt(row, col) == null)
+                // If no piece is at the clicked square, do nothing
+                return;
+            }
+
+            if (selectedCol >= 0 && selectedRow >= 0)
+            {
+                if ((pieceAtPos != null && pieceAtPos.Color != board.CurrentTurn) || pieceAtPos == null)
                 {
-                    // If no piece is at the clicked square, do nothing
+                    MoveSelectedPiece(row, col);
                     return;
                 }
-                System.Console.WriteLine(selectPiece);
                 SelectPiece(row, col);
-                selectPiece = false;
             }
             else
             {
-                System.Console.WriteLine(selectPiece);
-                MoveSelectedPiece(row, col);
-                selectPiece = true;
+                SelectPiece(row, col);
             }
-            System.Console.WriteLine($"Button at row {row + 1}, column {col + 1} was clicked.");
         }
     }
 
-    void SelectPiece(int row, int col)
+    private void SelectPiece(int row, int col)
     {
         // Implement logic to select a piece at the specified position
         selectedRow = row;
         selectedCol = col;
+        Console.WriteLine(selectedRow);
+        if (selectedCol >= 0 && selectedRow >= 0)
+        {
+            List<Move> moves = board.PreGenerateMoves(selectedRow, selectedCol);
+            HighlighSquares(moves);
+        }
+        else
+        {
+            Console.WriteLine("selectedRow und selectedCol sind kleiner als 0. Wähle ein Feld aus!");
+        }
         return;
     }
 
-    void MoveSelectedPiece(int toRow, int toCol)
+    private void MoveSelectedPiece(int toRow, int toCol)
     {
         if (selectedRow == toRow && selectedCol == toCol)
         {
-            // If the same square is clicked again, deselect the piece
-            selectedRow = 0;
-            selectedCol = 0;
             return;
         }
 
@@ -223,8 +253,8 @@ public partial class MainWindow : Window
         else
         {
             // If the move was not successful, do nothing
-            selectedRow = 0;
-            selectedCol = 0;
+            selectedRow = -1;
+            selectedCol = -1;
             return;
         }
     }

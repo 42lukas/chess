@@ -55,42 +55,42 @@ public class Board
 
         if (piece.Type == PieceType.Pawn)
         {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move);
+            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
             bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
             return result;
         }
 
         if (piece.Type == PieceType.Knight)
         {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move);
+            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
             bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
             return result;
         }
 
         if (piece.Type == PieceType.Rook)
         {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move);
+            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
             bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
             return result;
         }
 
         if (piece.Type == PieceType.Bishop)
         {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move);
+            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
             bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
             return result;
         }
 
         if (piece.Type == PieceType.Queen)
         {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move);
+            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
             bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
             return result;
         }
 
         if (piece.Type == PieceType.King)
         {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move);
+            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
             bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
             return result;
         }
@@ -129,6 +129,17 @@ public class Board
         this.RemovePieceAt(move.FromRow, move.FromCol);
         ToggleTurn();
         return true;
+    }
+
+    public List<Move> PreGenerateMoves(int selectedRow, int selectedCol)
+    {
+        List<Move> movesFromPos = _moveGenerator.GenerateMoves(this, selectedRow, selectedCol);
+        for (int i = 0; i < movesFromPos.Count; i++)
+        {
+            Console.WriteLine($"Möglicher Move: {movesFromPos[i].ToRow}, {movesFromPos[i].ToCol}");
+        }
+
+        return movesFromPos;
     }
 
     public bool IsCheck(PieceColor color)

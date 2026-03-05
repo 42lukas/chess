@@ -5,9 +5,9 @@ namespace Chess.Core.Rules;
 
 public class MoveGenerator
 {
-    public List<Move> GenerateMoves(Board board, Move move)
+    public List<Move> GenerateMoves(Board board, int fromRow, int fromCol)
     {
-        var piece = board.GetPieceAt(move.FromRow, move.FromCol);
+        var piece = board.GetPieceAt(fromRow, fromCol);
         if (piece == null)
         {
             return new List<Move>();
@@ -16,17 +16,17 @@ public class MoveGenerator
         switch (piece.Type)
         {
             case PieceType.Pawn:
-                return GeneratePawnMoves(board, move.FromRow, move.FromCol);
+                return GeneratePawnMoves(board, fromRow, fromCol);
             case PieceType.Rook:
-                return GenerateRookMoves(board, move.FromRow, move.FromCol);
+                return GenerateRookMoves(board, fromRow, fromCol);
             case PieceType.Knight:
-                return GenerateKnightMoves(board, move.FromRow, move.FromCol);
+                return GenerateKnightMoves(board, fromRow, fromCol);
             case PieceType.Bishop:
-                return GenerateBishopMoves(board, move.FromRow, move.FromCol);
+                return GenerateBishopMoves(board, fromRow, fromCol);
             case PieceType.Queen:
-                return GenerateQueenMoves(board, move.FromRow, move.FromCol);
+                return GenerateQueenMoves(board, fromRow, fromCol);
             case PieceType.King:
-                return GenerateKingMoves(board, move.FromRow, move.FromCol);
+                return GenerateKingMoves(board, fromRow, fromCol);
             default:
                 throw new InvalidOperationException("Unknown piece type");
         }
