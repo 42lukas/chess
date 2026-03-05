@@ -129,8 +129,38 @@ public class MoveGenerator
 
     private List<Move> GenerateKnightMoves(Board board, int row, int col)
     {
-        // Implement knight move generation logic
-        return new List<Move>();
+        List<Move> moves = new List<Move>();
+        Piece? piece = board.GetPieceAt(row, col);
+        if (piece == null || piece.Type != PieceType.Knight)
+        {
+            return moves;
+        }
+
+        // Generate moves in "L" format from origin
+        (int, int)[] directions = { (1, 2), (-1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, 1), (-2, -1) }; // (d-row, d-col), ...
+        for (int d = 0; d < directions.Length; d++)
+        {
+            int newRow = row + directions[d].Item1;
+            int newCol = col + directions[d].Item2;
+            //Console.WriteLine($"possible move {d}: {newRow + 1}, {newCol + 1} (row/col)");
+            if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8)
+            {
+                Piece? targetPiece = board.GetPieceAt(newRow, newCol);
+                if (targetPiece == null)
+                {
+                    moves.Add(new Move(row, col, newRow, newCol));
+                }
+                else
+                {
+                    if (targetPiece.Color != piece.Color)
+                    {
+                        moves.Add(new Move(row, col, newRow, newCol));
+                    }
+                }
+            }
+        }
+
+        return moves;
     }
 
     private List<Move> GenerateBishopMoves(Board board, int row, int col)
@@ -147,7 +177,7 @@ public class MoveGenerator
         for (int d = 0; d < 4; d++)
         {
             int newRow = row + directions[d].Item1;
-            int newCol = col + directions[(d + 1) % 4].Item2;
+            int newCol = col + directions[d].Item2;
             while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8)
             {
                 Piece? targetPiece = board.GetPieceAt(newRow, newCol);
@@ -164,7 +194,7 @@ public class MoveGenerator
                     break;
                 }
                 newRow += directions[d].Item1;
-                newCol += directions[(d + 1) % 4].Item2;
+                newCol += directions[d].Item2;
             }
         }
 
@@ -178,8 +208,7 @@ public class MoveGenerator
 
         bishopMoves.AddRange(rookMoves);
 
-        List<Move> queenMoves = bishopMoves;
-        return queenMoves;
+        return bishopMoves;
     }
 
     private List<Move> GenerateKingMoves(Board board, int row, int col)
@@ -220,7 +249,7 @@ public class MoveGenerator
         for (int d = 0; d < 4; d++)
         {
             int newRow = row + directionsDia[d].Item1;
-            int newCol = col + directionsDia[(d + 1) % 4].Item2;
+            int newCol = col + directionsDia[d].Item2;
             if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8)
             {
                 Piece? targetPiece = board.GetPieceAt(newRow, newCol);

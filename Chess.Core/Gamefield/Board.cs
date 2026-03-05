@@ -60,6 +60,13 @@ public class Board
             return result;
         }
 
+        if (piece.Type == PieceType.Knight)
+        {
+            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move);
+            bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
+            return result;
+        }
+
         if (piece.Type == PieceType.Rook)
         {
             List<Move> validMoves = _moveGenerator.GenerateMoves(this, move);
