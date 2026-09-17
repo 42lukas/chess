@@ -1,5 +1,6 @@
 using Chess.Core.Pieces;
 using Chess.Core.Gamefield;
+using System.Dynamic;
 
 namespace Chess.Core.Rules;
 
@@ -80,6 +81,7 @@ public class MoveGenerator
         if (col > 0 && board.GetPieceAt(row + attackDirection, col - 1) != null && board.GetPieceAt(row + attackDirection, col - 1)?.Color != piece.Color)
         {
             moves.Add(new Move(row, col, row + attackDirection, col - 1));
+
         }
         if (col < 7 && board.GetPieceAt(row + attackDirection, col + 1) != null && board.GetPieceAt(row + attackDirection, col + 1)?.Color != piece.Color)
         {
@@ -268,4 +270,5 @@ public class MoveGenerator
 
         return moves;
     }
+
 }

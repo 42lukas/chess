@@ -1,4 +1,6 @@
-﻿using System.IO.Pipelines;
+﻿using System.Drawing;
+using System.IO.Pipelines;
+using System.Runtime.ConstrainedExecution;
 using Chess.Core.Pieces;
 using Chess.Core.Rules;
 
@@ -7,12 +9,20 @@ namespace Chess.Core.Gamefield;
 public class Board
 {
     public Piece?[,] Squares { get; }
-    public BoardState State { get; set; } = BoardState.Ongoing;
+    public BoardState State { get; set; }
     public PieceColor CurrentTurn { get; set; } = PieceColor.White;
-    private readonly MoveGenerator _moveGenerator = new MoveGenerator();
 
-    public Board()
+    private readonly MoveGenerator _moveGenerator;
+    private readonly CheckDetector _checkDetector;
+    private readonly MoveValidator _moveValidator;
+
+    public Board(MoveGenerator moveGenerator, CheckDetector checkDetector, MoveValidator moveValidator)
     {
+        _moveGenerator = moveGenerator;
+        _checkDetector = checkDetector;
+        _moveValidator = moveValidator;
+
+
         this.Squares = new Piece?[8, 8];
         // Initialize the board with pieces in their starting positions
         for (int i = 0; i < 8; i++)
@@ -36,67 +46,10 @@ public class Board
         this.Squares[7, 4] = new King(PieceColor.White);
         this.Squares[0, 3] = new Queen(PieceColor.Black);
         this.Squares[0, 4] = new King(PieceColor.Black);
+
+        State = BoardState.Ongoing;
     }
 
-    public bool IsValidMove(Move move)
-    {
-        Piece? piece = this.GetPieceAt(move.FromRow, move.FromCol);
-        if (piece == null)
-        {
-            // No piece at the source square
-            return false;
-        }
-
-        if (this.CurrentTurn != piece.Color)
-        {
-            // It's not the current player's turn
-            return false;
-        }
-
-        if (piece.Type == PieceType.Pawn)
-        {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
-            bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
-            return result;
-        }
-
-        if (piece.Type == PieceType.Knight)
-        {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
-            bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
-            return result;
-        }
-
-        if (piece.Type == PieceType.Rook)
-        {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
-            bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
-            return result;
-        }
-
-        if (piece.Type == PieceType.Bishop)
-        {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
-            bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
-            return result;
-        }
-
-        if (piece.Type == PieceType.Queen)
-        {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
-            bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
-            return result;
-        }
-
-        if (piece.Type == PieceType.King)
-        {
-            List<Move> validMoves = _moveGenerator.GenerateMoves(this, move.FromRow, move.FromCol);
-            bool result = validMoves.Any(m => m.FromRow == move.FromRow && m.FromCol == move.FromCol && m.ToRow == move.ToRow && m.ToCol == move.ToCol);
-            return result;
-        }
-
-        return true;
-    }
 
     public void ToggleTurn()
     {
@@ -112,7 +65,7 @@ public class Board
 
     public bool MovePiece(Move move)
     {
-        if (!IsValidMove(move))
+        if (!_moveValidator.IsValidMove(this, move))
         {
             return false;
         }
@@ -125,24 +78,50 @@ public class Board
 
         this.SetPieceAt(move.ToRow, move.ToCol, piece);
         this.RemovePieceAt(move.FromRow, move.FromCol);
+
+
+        if (IsCheck(CurrentTurn))
+        {
+            if (IsCheckmate(CurrentTurn))
+            {
+                State = BoardState.Checkmate;
+            }
+            else
+            {
+                State = BoardState.Ongoing;
+            }
+        }
+        else
+        {
+            if (IsStalemate(CurrentTurn))
+            {
+                State = BoardState.Stalemate;
+            }
+            else if (IsDraw(CurrentTurn))
+            {
+                State = BoardState.Draw;
+            }
+            else
+            {
+                State = BoardState.Ongoing;
+            }
+        }
         ToggleTurn();
         return true;
     }
 
-    public List<Move> PreGenerateMoves(int selectedRow, int selectedCol)
-    {
-        List<Move> movesFromPos = _moveGenerator.GenerateMoves(this, selectedRow, selectedCol);
-        for (int i = 0; i < movesFromPos.Count; i++)
-        {
-            Console.WriteLine($"Möglicher Move: {movesFromPos[i].ToRow}, {movesFromPos[i].ToCol}");
-        }
-
-        return movesFromPos;
-    }
-
     public bool IsCheck(PieceColor color)
     {
-        // Implement logic to determine if the king of the specified color is in check
+        List<(Piece piece, int row, int col)> pieces = GetAllPiecesFromColor(color);
+        foreach ((Piece piece, int row, int col) piece in pieces)
+        {
+            Check? check = _checkDetector.VerifyCheck(this, piece.row, piece.col);
+            if (check != null)
+            {
+                System.Console.WriteLine($"CHECKKKKKKKKKK {check.kingColor}");
+                return true;
+            }
+        }
         return false;
     }
 
@@ -152,10 +131,60 @@ public class Board
         return false;
     }
 
+    public bool IsStalemate(PieceColor color)
+    {
+        // Implement logic to determine if the king of the specified color is in stalemate
+        return false;
+    }
+
+    public bool IsDraw(PieceColor color)
+    {
+        // Implement logic to determine if there is a draw
+        return false;
+    }
+
+    public List<(Piece piece, int row, int col)> GetAllPieces()
+    {
+        List<(Piece piece, int row, int col)> pieces = new List<(Piece piece, int row, int col)>();
+        // row
+        for (int r = 0; r < 8; r++)
+        {
+            // col 
+            for (int c = 0; c < 8; c++)
+            {
+                Piece? piece = GetPieceAt(r, c);
+                if (piece != null)
+                {
+                    pieces.Add((piece, r, c));
+                }
+            }
+        }
+        return pieces;
+    }
+
+    public List<(Piece piece, int row, int col)> GetAllPiecesFromColor(PieceColor color)
+    {
+        List<(Piece piece, int row, int col)> pieces = new List<(Piece piece, int row, int col)>();
+        // row
+        for (int r = 0; r < 8; r++)
+        {
+            // col 
+            for (int c = 0; c < 8; c++)
+            {
+                Piece? piece = GetPieceAt(r, c);
+                if (piece != null && piece.Color == color)
+                {
+                    pieces.Add((piece, r, c));
+                }
+            }
+        }
+        return pieces;
+    }
+
     public void SetPieceAt(int row, int col, Piece? piece)
     {
         this.Squares[row, col] = piece;
-        System.Console.WriteLine($"Set piece at row {row}, column {col} to {piece?.ToString() ?? "null"}");
+        // System.Console.WriteLine($"Set piece at row {row}, column {col} to {piece?.ToString() ?? "null"}");
     }
 
     public Piece? GetPieceAt(int row, int col)
@@ -166,5 +195,17 @@ public class Board
     public void RemovePieceAt(int row, int col)
     {
         this.Squares[row, col] = null;
+    }
+
+    public PieceColor GetOppositeColor()
+    {
+        if (CurrentTurn == PieceColor.White)
+        {
+            return PieceColor.Black;
+        }
+        else
+        {
+            return PieceColor.White;
+        }
     }
 }

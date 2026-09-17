@@ -1,4 +1,4 @@
-namespace Chess.Core.Rules;
+namespace Chess.Core.Gamefield;
 
 public class Move
 {

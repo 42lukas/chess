@@ -16,12 +16,21 @@ public partial class MainWindow : Window
 {
     public Button[] board_btns = new Button[64];
     private Bitmap? w_pawn_bit, b_pawn_bit, w_rook_bit, b_rook_bit, w_knight_bit, b_knight_bit, w_bishop_bit, b_bishop_bit, w_queen_bit, b_queen_bit, w_king_bit, b_king_bit;
-    public Board board = new Board();
+
+    private readonly MoveGenerator moveGenerator;
+    private readonly CheckDetector checkDetector;
+    private readonly MoveValidator moveValidator;
+    public Board board;
     private int selectedRow = -1;
     private int selectedCol = -1;
 
     public MainWindow()
     {
+        moveGenerator = new MoveGenerator();
+        checkDetector = new CheckDetector(moveGenerator);
+        moveValidator = new MoveValidator(moveGenerator, checkDetector);
+        board = new Board(moveGenerator, checkDetector, moveValidator);
+
         InitializeComponent();
         InitializeBoard();
         LoadPieceImages();
@@ -33,8 +42,12 @@ public partial class MainWindow : Window
         var board_txts = new TextBlock[16];
         var board_txt_letters = new string[] { "H", "G", "F", "E", "D", "C", "B", "A" };
         var board_txt_numbers = new string[] { "8", "7", "6", "5", "4", "3", "2", "1" };
-        this.RootGrid.RowDefinitions = new RowDefinitions("100, 100, 100, 100, 100, 100, 100, 100, 100");
-        this.RootGrid.ColumnDefinitions = new ColumnDefinitions("100, 100, 100, 100, 100, 100, 100, 100, 100");
+        this.ChessGrid.RowDefinitions = new RowDefinitions("100, 100, 100, 100, 100, 100, 100, 100, 100");
+        this.ChessGrid.ColumnDefinitions = new ColumnDefinitions("100, 100, 100, 100, 100, 100, 100, 100, 100");
+
+        this.TextField.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
+        this.TextField.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+        this.TextField.Background = new SolidColorBrush(Color.Parse("#00000000"));
 
         for (int i = 0; i < board_btns.Length; i++)
         {
@@ -49,7 +62,7 @@ public partial class MainWindow : Window
             Grid.SetColumn(board_btns[i], i % 8);
             board_btns[i].Click += ClickHandler;
 
-            this.RootGrid.Children.Add(board_btns[i]);
+            this.ChessGrid.Children.Add(board_btns[i]);
         }
 
         for (int i = 0; i < board_txt_letters.Length; i++)
@@ -64,7 +77,7 @@ public partial class MainWindow : Window
             Grid.SetRow(board_txts[i], 8);
             Grid.SetColumn(board_txts[i], i);
 
-            this.RootGrid.Children.Add(board_txts[i]);
+            this.ChessGrid.Children.Add(board_txts[i]);
         }
 
         for (int i = 0; i < board_txt_numbers.Length; i++)
@@ -79,10 +92,10 @@ public partial class MainWindow : Window
             Grid.SetRow(board_txts[i + 8], i);
             Grid.SetColumn(board_txts[i + 8], 8);
 
-            this.RootGrid.Children.Add(board_txts[i + 8]);
+            this.ChessGrid.Children.Add(board_txts[i + 8]);
         }
 
-        this.Content = this.RootGrid;
+        this.Content = this.ContainerGrid;
     }
 
     public void LoadPieceImages()
@@ -103,6 +116,7 @@ public partial class MainWindow : Window
 
     public void RenderBoard()
     {
+        DisplayText();
         for (int row = 0; row < 8; row++)
         {
             for (int col = 0; col < 8; col++)
@@ -110,7 +124,7 @@ public partial class MainWindow : Window
                 var piece = board.GetPieceAt(row, col);
                 if (piece != null)
                 {
-                    System.Console.WriteLine($"Piece at row {row + 1}, column {col + 1}: {piece}");
+                    // System.Console.WriteLine($"Piece at row {row + 1}, column {col + 1}: {piece}");
                     switch (piece)
                     {
                         case Pawn p when p.Color == PieceColor.White:
@@ -168,6 +182,24 @@ public partial class MainWindow : Window
         RenderBoard();
     }
 
+    private void DisplayText()
+    {
+
+        if (board.State == BoardState.Checkmate)
+        {
+            this.TextField.Text = $"{board.CurrentTurn} wins by checkmate";
+            this.TextField.FontWeight = FontWeight.Bold;
+            this.TextField.FontSize = 20.0;
+        }
+
+
+    }
+
+    private void RemoveText()
+    {
+
+    }
+
     private void HighlighSquares(List<Move> moves)
     {
         RemoveHighlightSqure();
@@ -188,6 +220,7 @@ public partial class MainWindow : Window
 
     public void ClickHandler(object? sender, RoutedEventArgs args)
     {
+        // After check was discoverd, the now attacking color (color which is check) is only able to defend the King
         if (sender is Button clickedButton && int.TryParse(clickedButton.Name, out int index))
         {
             int row = index / 8;
@@ -224,7 +257,7 @@ public partial class MainWindow : Window
         Console.WriteLine(selectedRow);
         if (selectedCol >= 0 && selectedRow >= 0)
         {
-            List<Move> moves = board.PreGenerateMoves(selectedRow, selectedCol);
+            List<Move> moves = moveValidator.GetLegalMoves(board, selectedRow, selectedCol);
             HighlighSquares(moves);
         }
         else
