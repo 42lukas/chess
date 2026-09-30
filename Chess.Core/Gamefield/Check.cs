@@ -21,3 +21,5 @@ public class Check
         this.attPiece = attPiece;
     }
 }
+
+// ToDo: nun Event einfügen mit subscribern

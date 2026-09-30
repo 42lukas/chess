@@ -106,6 +106,7 @@ public class Board
                 State = BoardState.Ongoing;
             }
         }
+
         ToggleTurn();
         return true;
     }
@@ -118,7 +119,6 @@ public class Board
             Check? check = _checkDetector.VerifyCheck(this, piece.row, piece.col);
             if (check != null)
             {
-                System.Console.WriteLine($"CHECKKKKKKKKKK {check.kingColor}");
                 return true;
             }
         }
@@ -127,14 +127,12 @@ public class Board
 
     public bool IsCheckmate(PieceColor color)
     {
-        // Implement logic to determine if the king of the specified color is in checkmate
-        return false;
+        return _moveValidator.HasAnyLegalMoves(this);
     }
 
     public bool IsStalemate(PieceColor color)
     {
-        // Implement logic to determine if the king of the specified color is in stalemate
-        return false;
+        return _moveValidator.HasAnyLegalMoves(this);
     }
 
     public bool IsDraw(PieceColor color)

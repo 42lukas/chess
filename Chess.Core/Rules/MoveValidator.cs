@@ -50,21 +50,35 @@ public class MoveValidator
         Piece? piece = board.GetPieceAt(move.FromRow, move.FromCol);
 
         if (piece == null)
+        {
             return false;
+        }
 
         if (piece.Color != board.CurrentTurn)
+        {
             return false;
+        }
 
-        List<Move> legalMoves = GetLegalMoves(
-            board,
-            move.FromRow,
-            move.FromCol
-        );
+        List<Move> legalMoves = GetLegalMoves(board, move.FromRow, move.FromCol);
 
         return legalMoves.Any(m =>
             m.FromRow == move.FromRow &&
             m.FromCol == move.FromCol &&
             m.ToRow == move.ToRow &&
             m.ToCol == move.ToCol);
+    }
+
+    public bool HasAnyLegalMoves(Board board)
+    {
+        List<(Piece piece, int row, int col)> pieces = board.GetAllPiecesFromColor(board.CurrentTurn);
+        foreach ((Piece piece, int row, int col) piece in pieces)
+        {
+            List<Move> legalMoves = GetLegalMoves(board, piece.row, piece.col);
+            if (legalMoves.Count > 0)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
